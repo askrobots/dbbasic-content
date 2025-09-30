@@ -5,6 +5,17 @@ All notable changes to dbbasic-content will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2025-09-30
+
+### Fixed
+- Removed `dbbasic-tsv` from required dependencies (moved to optional `[tsv]` extra)
+- Core package now has zero external dependencies (stdlib only)
+- Fixes GitHub Actions test failures on Python 3.8/3.9
+
+### Changed
+- `dbbasic-tsv` is now optional: `pip install dbbasic-content[tsv]`
+- Updated installation docs to reflect dependency changes
+
 ## [0.1.0] - 2025-09-30
 
 ### Added

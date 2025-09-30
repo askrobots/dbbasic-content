@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="dbbasic-content",
-    version="0.1.0",
+    version="0.1.1",
     author="Dan Quellhorst",
     author_email="dan@quellhorst.com",
     description="Unix-foundation content management for web apps - WordPress escape toolkit",
@@ -35,7 +35,7 @@ setup(
     keywords="cms content-management wordpress unix blocks json",
     python_requires=">=3.8",
     install_requires=[
-        "dbbasic-tsv>=0.1.0",
+        # Core has no external dependencies - just stdlib
     ],
     extras_require={
         "dev": [
@@ -44,6 +44,9 @@ setup(
         ],
         "wordpress": [
             "pymysql>=1.0",
+        ],
+        "tsv": [
+            "dbbasic-tsv>=0.1.0",
         ],
     },
     entry_points={
