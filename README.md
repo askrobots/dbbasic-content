@@ -1,5 +1,9 @@
 # dbbasic-content
 
+[![PyPI version](https://badge.fury.io/py/dbbasic-content.svg)](https://pypi.org/project/dbbasic-content/)
+[![Python versions](https://img.shields.io/pypi/pyversions/dbbasic-content.svg)](https://pypi.org/project/dbbasic-content/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **Unix-foundation content management for web apps**
 
 Part of the WordPress escape toolkit. Build on Unix foundations instead of rebuilding everything badly.
@@ -27,14 +31,14 @@ dbbasic-content provides WordPress-like content management built on Unix princip
 ## Installation
 
 ```bash
-# From PyPI (when published)
+# From PyPI
 pip install dbbasic-content
-
-# From source
-pip install git+https://github.com/askrobots/dbbasic-content.git
 
 # With WordPress import support
 pip install dbbasic-content[wordpress]
+
+# From source (development)
+pip install git+https://github.com/askrobots/dbbasic-content.git
 ```
 
 ## Quick Start
