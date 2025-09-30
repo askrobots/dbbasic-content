@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dbbasic-content"
-version = "0.1.1"
+version = "0.1.2"
 description = "Unix-foundation content management for web apps - WordPress escape toolkit"
 readme = "README.md"
 authors = [{name = "Dan Quellhorst", email = "dan@quellhorst.com"}]
@@ -23,7 +23,7 @@ classifiers = [
 keywords = ["cms", "content-management", "wordpress", "unix", "blocks", "json"]
 requires-python = ">=3.8"
 dependencies = [
-    # Core has no external dependencies - just stdlib
+    "dbbasic-tsv>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -33,9 +33,6 @@ dev = [
 ]
 wordpress = [
     "pymysql>=1.0",
-]
-tsv = [
-    "dbbasic-tsv>=0.1.0",
 ]
 
 [project.urls]

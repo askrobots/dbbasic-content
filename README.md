@@ -31,14 +31,11 @@ dbbasic-content provides WordPress-like content management built on Unix princip
 ## Installation
 
 ```bash
-# From PyPI (no external dependencies)
+# From PyPI
 pip install dbbasic-content
 
 # With WordPress import support
 pip install dbbasic-content[wordpress]
-
-# With optional TSV metadata support
-pip install dbbasic-content[tsv]
 
 # From source (development)
 pip install git+https://github.com/askrobots/dbbasic-content.git

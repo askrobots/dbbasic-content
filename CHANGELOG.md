@@ -5,16 +5,20 @@ All notable changes to dbbasic-content will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2025-09-30
+
+### Fixed
+- Restored `dbbasic-tsv` as required dependency (v1.0.1 exists on PyPI)
+- Updated to require `dbbasic-tsv>=1.0.0` for compatibility
+
+### Changed
+- Removed `[tsv]` extra (no longer needed)
+
 ## [0.1.1] - 2025-09-30
 
 ### Fixed
-- Removed `dbbasic-tsv` from required dependencies (moved to optional `[tsv]` extra)
-- Core package now has zero external dependencies (stdlib only)
-- Fixes GitHub Actions test failures on Python 3.8/3.9
-
-### Changed
-- `dbbasic-tsv` is now optional: `pip install dbbasic-content[tsv]`
-- Updated installation docs to reflect dependency changes
+- ~~Removed `dbbasic-tsv` from required dependencies~~ (reverted in 0.1.2)
+- Attempted fix for GitHub Actions (unnecessary)
 
 ## [0.1.0] - 2025-09-30
 
