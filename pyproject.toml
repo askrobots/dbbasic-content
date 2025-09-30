@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dbbasic-content"
-version = "0.1.2"
+version = "0.1.3"
 description = "Unix-foundation content management for web apps - WordPress escape toolkit"
 readme = "README.md"
 authors = [{name = "Dan Quellhorst", email = "dan@quellhorst.com"}]

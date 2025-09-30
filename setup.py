@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="dbbasic-content",
-    version="0.1.2",
+    version="0.1.3",
     author="Dan Quellhorst",
     author_email="dan@quellhorst.com",
     description="Unix-foundation content management for web apps - WordPress escape toolkit",

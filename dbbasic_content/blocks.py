@@ -4,7 +4,7 @@ Block definitions and validation.
 Defines the block types supported by the content system.
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 from enum import Enum
 
 
@@ -82,7 +82,7 @@ BLOCK_SCHEMAS = {
 }
 
 
-def validate_block(block: Dict[str, Any]) -> tuple[bool, str]:
+def validate_block(block: Dict[str, Any]) -> Tuple[bool, str]:
     """
     Validate a block structure.
 
@@ -122,7 +122,7 @@ def validate_block(block: Dict[str, Any]) -> tuple[bool, str]:
     return True, ""
 
 
-def validate_blocks(blocks: List[Dict[str, Any]]) -> tuple[bool, List[str]]:
+def validate_blocks(blocks: List[Dict[str, Any]]) -> Tuple[bool, List[str]]:
     """
     Validate a list of blocks.
 
