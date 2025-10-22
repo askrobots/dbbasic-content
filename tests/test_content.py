@@ -408,3 +408,140 @@ class TestContentDB:
         assert posts[0]['slug'] == 'post-2'  # Most recent
         assert posts[1]['slug'] == 'post-3'
         assert posts[2]['slug'] == 'post-1'  # Oldest
+
+
+class TestPages:
+    """Test page functionality (static content)."""
+
+    def test_create_page(self, content_db, sample_blocks):
+        """Test creating a page."""
+        page = content_db.create_page(
+            slug='about',
+            title='About Us',
+            blocks=sample_blocks,
+            author='admin'
+        )
+
+        assert page['slug'] == 'about'
+        assert page['title'] == 'About Us'
+        assert page['content_type'] == 'page'
+        assert page['blocks'] == sample_blocks
+
+    def test_get_page(self, content_db, sample_blocks):
+        """Test getting a page by slug."""
+        content_db.create_page(
+            slug='about',
+            title='About Us',
+            blocks=sample_blocks
+        )
+
+        page = content_db.get_page('about')
+        assert page is not None
+        assert page['slug'] == 'about'
+        assert page['title'] == 'About Us'
+        assert page['content_type'] == 'page'
+
+    def test_get_page_not_found(self, content_db):
+        """Test getting non-existent page returns None."""
+        page = content_db.get_page('does-not-exist')
+        assert page is None
+
+    def test_page_exists(self, content_db, sample_blocks):
+        """Test checking if page exists."""
+        assert not content_db.page_exists('about')
+
+        content_db.create_page(
+            slug='about',
+            title='About',
+            blocks=sample_blocks
+        )
+
+        assert content_db.page_exists('about')
+
+    def test_get_pages(self, content_db, sample_blocks):
+        """Test getting multiple pages."""
+        for i in range(5):
+            content_db.create_page(
+                slug=f'page-{i}',
+                title=f'Page {i}',
+                blocks=sample_blocks
+            )
+
+        pages = content_db.get_pages()
+        assert len(pages) == 5
+        # All should be pages
+        for page in pages:
+            assert page['content_type'] == 'page'
+
+    def test_update_page(self, content_db, sample_blocks):
+        """Test updating a page."""
+        content_db.create_page(
+            slug='about',
+            title='Original Title',
+            blocks=sample_blocks
+        )
+
+        updated = content_db.update_page(
+            'about',
+            title='Updated Title'
+        )
+
+        assert updated['title'] == 'Updated Title'
+
+        # Verify persistence
+        page = content_db.get_page('about')
+        assert page['title'] == 'Updated Title'
+
+    def test_delete_page(self, content_db, sample_blocks):
+        """Test deleting a page."""
+        content_db.create_page(
+            slug='about',
+            title='About',
+            blocks=sample_blocks
+        )
+
+        assert content_db.page_exists('about')
+
+        result = content_db.delete_page('about')
+        assert result is True
+        assert not content_db.page_exists('about')
+
+    def test_pages_and_posts_separate(self, content_db, sample_blocks):
+        """Test that pages and posts are stored separately."""
+        # Create a post
+        content_db.create_post(
+            slug='hello-world',
+            title='Hello World',
+            blocks=sample_blocks,
+            content_type='post'
+        )
+
+        # Create a page with same slug
+        content_db.create_page(
+            slug='hello-world',
+            title='Hello World Page',
+            blocks=sample_blocks
+        )
+
+        # Both should exist in different directories
+        post = content_db.get_post('hello-world', content_type='post')
+        page = content_db.get_page('hello-world')
+
+        assert post is not None
+        assert page is not None
+        assert post['title'] == 'Hello World'
+        assert page['title'] == 'Hello World Page'
+        assert post['content_type'] == 'post'
+        assert page['content_type'] == 'page'
+
+    def test_pages_no_categories_or_tags(self, content_db, sample_blocks):
+        """Test that pages typically don't use categories/tags."""
+        page = content_db.create_page(
+            slug='about',
+            title='About',
+            blocks=sample_blocks
+        )
+
+        # Pages can have categories/tags if needed, but typically don't
+        assert 'categories' not in page or page.get('categories') is None
+        assert 'tags' not in page or page.get('tags') is None

@@ -36,21 +36,46 @@ class ContentDB:
         """
         self.content_dir = Path(content_dir)
         self.articles_dir = self.content_dir / "articles"
+        self.posts_dir = self.content_dir / "posts"
+        self.pages_dir = self.content_dir / "pages"
 
         # Create directories if they don't exist
+        # Keep articles_dir for backward compatibility
         self.articles_dir.mkdir(parents=True, exist_ok=True)
+        self.posts_dir.mkdir(parents=True, exist_ok=True)
+        self.pages_dir.mkdir(parents=True, exist_ok=True)
 
-    def get_post(self, slug: str) -> Optional[Dict[str, Any]]:
+    def _get_content_dir(self, content_type: str) -> Path:
+        """
+        Get directory for content type.
+
+        Args:
+            content_type: "post", "page", or "article"
+
+        Returns:
+            Path to content directory
+        """
+        if content_type == "post":
+            return self.posts_dir
+        elif content_type == "page":
+            return self.pages_dir
+        else:
+            # Default to articles_dir for backward compatibility
+            return self.articles_dir
+
+    def get_post(self, slug: str, content_type: str = "article") -> Optional[Dict[str, Any]]:
         """
         Get a single post by slug (like WordPress get_post).
 
         Args:
             slug: Post slug
+            content_type: "post", "page", or "article" (default: "article" for backward compat)
 
         Returns:
             Post data dict or None if not found
         """
-        article_path = self.articles_dir / f"{slug}.json"
+        content_dir = self._get_content_dir(content_type)
+        article_path = content_dir / f"{slug}.json"
 
         if not article_path.exists():
             return None
@@ -60,6 +85,7 @@ class ContentDB:
 
     def get_posts(
         self,
+        content_type: str = "article",
         status: Optional[str] = None,
         categories: Optional[List[str]] = None,
         tags: Optional[List[str]] = None,
@@ -73,6 +99,7 @@ class ContentDB:
         Get multiple posts with filtering (like WordPress WP_Query).
 
         Args:
+            content_type: "post", "page", or "article" (default: "article" for backward compat)
             status: Filter by status (published, draft, etc.)
             categories: Filter by categories
             tags: Filter by tags
@@ -86,9 +113,10 @@ class ContentDB:
             List of post dicts
         """
         posts = []
+        content_dir = self._get_content_dir(content_type)
 
-        # Read all JSON files from articles directory
-        for article_path in self.articles_dir.glob("*.json"):
+        # Read all JSON files from content directory
+        for article_path in content_dir.glob("*.json"):
             try:
                 with open(article_path, 'r', encoding='utf-8') as f:
                     post = json.load(f)
@@ -140,6 +168,7 @@ class ContentDB:
         slug: str,
         title: str,
         blocks: List[Dict[str, Any]],
+        content_type: str = "article",
         author: str = "admin",
         date: Optional[str] = None,
         status: str = "published",
@@ -155,6 +184,7 @@ class ContentDB:
             slug: URL slug
             title: Post title
             blocks: List of content blocks
+            content_type: "post", "page", or "article" (default: "article" for backward compat)
             author: Post author
             date: Publication date (ISO format, defaults to now)
             status: Post status (published, draft, etc.)
@@ -175,6 +205,7 @@ class ContentDB:
             "date": date,
             "author": author,
             "status": status,
+            "content_type": content_type,
             "blocks": blocks,
         }
 
@@ -189,24 +220,26 @@ class ContentDB:
         post.update(kwargs)
 
         # Write to file
-        article_path = self.articles_dir / f"{slug}.json"
+        content_dir = self._get_content_dir(content_type)
+        article_path = content_dir / f"{slug}.json"
         with open(article_path, 'w', encoding='utf-8') as f:
             json.dump(post, f, indent=2, ensure_ascii=False)
 
         return post
 
-    def update_post(self, slug: str, **updates) -> Optional[Dict[str, Any]]:
+    def update_post(self, slug: str, content_type: str = "article", **updates) -> Optional[Dict[str, Any]]:
         """
         Update an existing post (like WordPress wp_update_post).
 
         Args:
             slug: Post slug
+            content_type: "post", "page", or "article" (default: "article" for backward compat)
             **updates: Fields to update
 
         Returns:
             Updated post data or None if not found
         """
-        post = self.get_post(slug)
+        post = self.get_post(slug, content_type=content_type)
         if not post:
             return None
 
@@ -214,23 +247,26 @@ class ContentDB:
         post.update(updates)
 
         # Write back to file
-        article_path = self.articles_dir / f"{slug}.json"
+        content_dir = self._get_content_dir(content_type)
+        article_path = content_dir / f"{slug}.json"
         with open(article_path, 'w', encoding='utf-8') as f:
             json.dump(post, f, indent=2, ensure_ascii=False)
 
         return post
 
-    def delete_post(self, slug: str) -> bool:
+    def delete_post(self, slug: str, content_type: str = "article") -> bool:
         """
         Delete a post (like WordPress wp_delete_post).
 
         Args:
             slug: Post slug
+            content_type: "post", "page", or "article" (default: "article" for backward compat)
 
         Returns:
             True if deleted, False if not found
         """
-        article_path = self.articles_dir / f"{slug}.json"
+        content_dir = self._get_content_dir(content_type)
+        article_path = content_dir / f"{slug}.json"
 
         if not article_path.exists():
             return False
@@ -238,17 +274,19 @@ class ContentDB:
         article_path.unlink()
         return True
 
-    def post_exists(self, slug: str) -> bool:
+    def post_exists(self, slug: str, content_type: str = "article") -> bool:
         """
         Check if a post exists.
 
         Args:
             slug: Post slug
+            content_type: "post", "page", or "article" (default: "article" for backward compat)
 
         Returns:
             True if exists, False otherwise
         """
-        article_path = self.articles_dir / f"{slug}.json"
+        content_dir = self._get_content_dir(content_type)
+        article_path = content_dir / f"{slug}.json"
         return article_path.exists()
 
     def get_categories(self) -> List[str]:
@@ -320,3 +358,121 @@ class ContentDB:
                     break
 
         return results
+
+    # Convenience methods for pages
+
+    def create_page(
+        self,
+        slug: str,
+        title: str,
+        blocks: List[Dict[str, Any]],
+        author: str = "admin",
+        status: str = "published",
+        description: Optional[str] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Create a new page (static content, no date/categories).
+
+        Args:
+            slug: URL slug
+            title: Page title
+            blocks: List of content blocks
+            author: Page author
+            status: Page status (published, draft, etc.)
+            description: Meta description
+            **kwargs: Additional metadata
+
+        Returns:
+            Created page data
+        """
+        return self.create_post(
+            slug=slug,
+            title=title,
+            blocks=blocks,
+            content_type="page",
+            author=author,
+            date=None,  # Pages don't have dates
+            status=status,
+            description=description,
+            **kwargs
+        )
+
+    def get_page(self, slug: str) -> Optional[Dict[str, Any]]:
+        """
+        Get a single page by slug.
+
+        Args:
+            slug: Page slug
+
+        Returns:
+            Page data dict or None if not found
+        """
+        return self.get_post(slug, content_type="page")
+
+    def get_pages(
+        self,
+        status: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: int = 0,
+        order_by: str = 'title',
+        order: str = 'asc'
+    ) -> List[Dict[str, Any]]:
+        """
+        Get multiple pages with filtering.
+
+        Args:
+            status: Filter by status (published, draft, etc.)
+            limit: Maximum number of pages to return
+            offset: Number of pages to skip
+            order_by: Field to order by (title by default for pages)
+            order: Order direction (asc or desc)
+
+        Returns:
+            List of page dicts
+        """
+        return self.get_posts(
+            content_type="page",
+            status=status,
+            limit=limit,
+            offset=offset,
+            order_by=order_by,
+            order=order
+        )
+
+    def update_page(self, slug: str, **updates) -> Optional[Dict[str, Any]]:
+        """
+        Update an existing page.
+
+        Args:
+            slug: Page slug
+            **updates: Fields to update
+
+        Returns:
+            Updated page data or None if not found
+        """
+        return self.update_post(slug, content_type="page", **updates)
+
+    def delete_page(self, slug: str) -> bool:
+        """
+        Delete a page.
+
+        Args:
+            slug: Page slug
+
+        Returns:
+            True if deleted, False if not found
+        """
+        return self.delete_post(slug, content_type="page")
+
+    def page_exists(self, slug: str) -> bool:
+        """
+        Check if a page exists.
+
+        Args:
+            slug: Page slug
+
+        Returns:
+            True if exists, False otherwise
+        """
+        return self.post_exists(slug, content_type="page")

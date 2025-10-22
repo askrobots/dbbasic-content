@@ -21,12 +21,14 @@ dbbasic-content provides WordPress-like content management built on Unix princip
 
 ## Features
 
-- **ContentDB**: WordPress-like API (`get_post`, `get_posts`, etc.)
+- **ContentDB**: WordPress-like API (`get_post`, `get_posts`, `get_page`, `get_pages`)
+- **Posts vs Pages**: Separate blog posts (dated, categorized) from static pages
 - **Block-based**: Paragraph, heading, list, card, code, and more
 - **WordPress Import**: Migrate from wp_posts to JSON blocks
 - **Unix Gateway**: Thin layer over filesystem primitives
 - **Version Control Friendly**: JSON files in git
 - **Grep-able**: Find content with standard Unix tools
+- **Backward Compatible**: Existing `articles/` directory still works
 
 ## Installation
 
@@ -43,6 +45,8 @@ pip install git+https://github.com/askrobots/dbbasic-content.git
 
 ## Quick Start
 
+### Posts (Blog Articles)
+
 ```python
 from dbbasic_content import ContentDB
 
@@ -50,23 +54,87 @@ from dbbasic_content import ContentDB
 content = ContentDB('/var/app/content')
 
 # Get a post by slug
-post = content.get_post('hello-world')
+post = content.get_post('hello-world', content_type='post')
 
 # Get published posts
-posts = content.get_posts(status='published', limit=10)
+posts = content.get_posts(content_type='post', status='published', limit=10)
 
 # Get posts by category
-tech_posts = content.get_posts(categories=['Technology'])
+tech_posts = content.get_posts(content_type='post', categories=['Technology'])
 
 # Add a new post
 content.create_post(
     slug='new-post',
     title='My New Post',
+    content_type='post',
     author='john',
     blocks=[
         {'type': 'paragraph', 'data': {'content': 'Hello world!'}},
         {'type': 'heading', 'data': {'level': 2, 'content': 'Subheading'}},
     ]
+)
+```
+
+### Pages (Static Content)
+
+```python
+# Create a page (no date, categories, or tags)
+content.create_page(
+    slug='about',
+    title='About Us',
+    blocks=[
+        {'type': 'heading', 'data': {'level': 1, 'content': 'About Us'}},
+        {'type': 'paragraph', 'data': {'content': 'We are building the future...'}},
+    ]
+)
+
+# Get a page
+about = content.get_page('about')
+
+# Get all pages
+pages = content.get_pages(status='published')
+
+# Update a page
+content.update_page('about', title='About Our Company')
+
+# Delete a page
+content.delete_page('old-page')
+```
+
+### Posts vs Pages: What's the Difference?
+
+Following WordPress conventions:
+
+**Posts (Blog Articles)**
+- Have publication dates
+- Support categories and tags
+- Displayed chronologically (newest first)
+- Appear in RSS feeds
+- Used for: Blog posts, news articles, announcements
+
+**Pages (Static Content)**
+- No dates (timeless content)
+- No categories or tags
+- Displayed alphabetically or by menu order
+- Don't appear in RSS feeds
+- Used for: About, Contact, Documentation, Specs
+
+```python
+# Create a blog post
+content.create_post(
+    slug='announcing-v2',
+    title='Announcing Version 2.0',
+    content_type='post',
+    date='2025-10-22',
+    categories=['Announcements'],
+    blocks=[...]
+)
+
+# Create a documentation page
+content.create_page(
+    slug='api-docs',
+    title='API Documentation',
+    blocks=[...]  # No date, no categories
 )
 ```
 
@@ -136,28 +204,56 @@ Extensible - add your own block types.
 
 ```
 /var/app/content/
-├── articles/
+├── articles/          # Legacy (backward compatible)
+│   └── old-post.json
+├── posts/             # Blog posts (dated, categorized)
 │   ├── hello-world.json
-│   ├── about-us.json
 │   └── tech-post.json
-├── metadata.tsv          # Post metadata (searchable)
-├── taxonomy.tsv          # Categories/tags
-└── comments.tsv          # Comments (if enabled)
+├── pages/             # Static pages (no date/categories)
+│   ├── about.json
+│   └── contact.json
+├── metadata.tsv       # Post metadata (searchable)
+├── taxonomy.tsv       # Categories/tags
+└── comments.tsv       # Comments (if enabled)
 ```
 
-Each article is a JSON file with blocks:
+### Post Format (Blog Article)
 
 ```json
 {
   "slug": "hello-world",
   "title": "Hello World",
+  "content_type": "post",
   "date": "2025-01-15",
   "author": "john",
   "categories": ["Technology"],
+  "tags": ["python", "web"],
   "blocks": [
     {
       "type": "paragraph",
       "data": {"content": "Hello world!"}
+    }
+  ]
+}
+```
+
+### Page Format (Static Content)
+
+```json
+{
+  "slug": "about",
+  "title": "About Us",
+  "content_type": "page",
+  "author": "admin",
+  "status": "published",
+  "blocks": [
+    {
+      "type": "heading",
+      "data": {"level": 1, "content": "About Us"}
+    },
+    {
+      "type": "paragraph",
+      "data": {"content": "We are building..."}
     }
   ]
 }
@@ -175,13 +271,22 @@ content = ContentDB('/var/app/content')
 
 @app.route('/')
 def index():
-    posts = content.get_posts(status='published', limit=10)
+    posts = content.get_posts(content_type='post', status='published', limit=10)
     return render_template('index.html', posts=posts)
 
-@app.route('/<slug>/')
-def post(slug):
-    post = content.get_post(slug)
+@app.route('/blog/<slug>/')
+def blog_post(slug):
+    post = content.get_post(slug, content_type='post')
     return render_template('post.html', post=post)
+
+@app.route('/<slug>/')
+def page(slug):
+    page = content.get_page(slug)
+    if page:
+        return render_template('page.html', page=page)
+    # Fallback to article for backward compatibility
+    article = content.get_post(slug, content_type='article')
+    return render_template('page.html', page=article)
 ```
 
 That's it. No database daemon. No migrations. Just files.
